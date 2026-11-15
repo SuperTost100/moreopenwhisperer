@@ -168,7 +168,7 @@ Packaged installers come from `npm run build:mac`, `npm run build:win` or `npm r
 
 These commands run the desktop app at the repository root. The Expo mobile app lives in [`openwhispr-mobile`](openwhispr-mobile/README.md) with its own dependencies, lockfile and release process.
 
-The stack is React 19, TypeScript, Tailwind CSS v4, Electron 41, better-sqlite3, whisper.cpp, sherpa-onnx, llama.cpp and shadcn/ui. [CONTRIBUTING.md](.github/CONTRIBUTING.md) covers how to file issues and pull requests. `main` is the shipping branch. Fixes that belong in official OpenWhispr go to [OpenWhispr/openwhispr](https://github.com/OpenWhispr/openwhispr).
+The stack is React 19, TypeScript, Tailwind CSS v4, Electron 43, better-sqlite3, whisper.cpp, sherpa-onnx, llama.cpp and shadcn/ui. [CONTRIBUTING.md](.github/CONTRIBUTING.md) covers how to file issues and pull requests. `main` is the shipping branch. Fixes that belong in official OpenWhispr go to [OpenWhispr/openwhispr](https://github.com/OpenWhispr/openwhispr).
 
 ## Documentation
 
