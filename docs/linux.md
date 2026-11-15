@@ -131,6 +131,23 @@ Settings can write `~/.config/autostart/open-whispr.desktop`. Electron's own log
 | Models | `~/.cache/openwhispr/` |
 | Autostart | `~/.config/autostart/open-whispr.desktop` |
 
+### Coming from 1.9.3
+
+MoreOpenWhispr 1.9.3 kept settings, history and keys in `~/.config/open-whispr`. From 1.10.2 on, the app uses `~/.config/MoreOpenWhispr` and doesn't copy the old folder, so the first launch after the upgrade starts empty. Before that first launch, copy the old folder:
+
+```bash
+cp -a ~/.config/open-whispr ~/.config/MoreOpenWhispr
+```
+
+If a newer version already started and you haven't set anything up in it, quit the app, move its new folder aside, then copy:
+
+```bash
+mv ~/.config/MoreOpenWhispr ~/.config/MoreOpenWhispr.empty
+cp -a ~/.config/open-whispr ~/.config/MoreOpenWhispr
+```
+
+The official OpenWhispr app also uses `~/.config/open-whispr` on Linux, so copy it only if that folder came from MoreOpenWhispr.
+
 ## Uninstall
 
 Remove the package you installed, or delete the AppImage. For a clean slate:
