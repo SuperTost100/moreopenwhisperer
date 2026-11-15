@@ -4,17 +4,24 @@
 // test/helpers/antigravityModels.test.js rather than by a re-export.
 
 // agy catalogs effort as part of the model id (gemini-3.8-flash-low). Current
-// agy no longer lists gemini-3.5-flash-*; --effort on a *-low id is redundant
-// and older CLI builds reject it. This is only a last-resort static fallback
-// for the CLI subprocess path (offline / gateway unreachable); the normal
+// agy no longer lists gemini-3.5-flash-* or 3.7-flash-*; --effort on a *-low
+// id is redundant and older CLI builds reject it. This is only a last-resort
+// static fallback for the CLI subprocess path (offline / gateway unreachable); the normal
 // path resolves "auto" against the live catalog instead of pinning a version
 // here, so settings and onboarding default to "auto", not this id.
 export const DEFAULT_ANTIGRAVITY_MODEL = "gemini-3.8-flash-low";
 
 export const RETIRED_AGY_CLI_MODELS: Record<string, string> = {
-  "gemini-3.5-flash-low": "gemini-3.7-flash-low",
-  "gemini-3.5-flash-medium": "gemini-3.7-flash-medium",
-  "gemini-3.5-flash-high": "gemini-3.7-flash-high",
+  // agy dropped 3.5 Flash, then 3.7 Flash and 3.1 Pro (seen 2026-11-15, when
+  // `agy models` listed only gemini-3.8-flash-* on the Gemini side). Every
+  // entry points straight at a served model, never at another retired one.
+  "gemini-3.5-flash-low": "gemini-3.8-flash-low",
+  "gemini-3.5-flash-medium": "gemini-3.8-flash-medium",
+  "gemini-3.5-flash-high": "gemini-3.8-flash-high",
+  "gemini-3.7-flash-low": "gemini-3.8-flash-low",
+  "gemini-3.7-flash-medium": "gemini-3.8-flash-medium",
+  "gemini-3.7-flash-high": "gemini-3.8-flash-high",
+  "gemini-3.1-pro-high": "gemini-3.8-flash-high",
 };
 
 export function resolveAgyCliModel(model: string): string {

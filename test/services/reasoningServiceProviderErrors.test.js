@@ -136,3 +136,35 @@ for (const { provider, model, displayName } of [
     assert.equal(error.surface, "llm");
   });
 }
+
+// Chats stream through the AI SDK, not the native Gemini provider, so they
+// need the same per-model thinking table: 3.8 Flash and Gemini 4 reject
+// "minimal".
+for (const [model, expected] of [
+  ["gemini-3.8-flash", { thinkingLevel: "low", includeThoughts: false }],
+  ["gemini-4-carbon", { thinkingLevel: "low", includeThoughts: false }],
+  ["gemini-3.5-flash-lite", { thinkingLevel: "minimal", includeThoughts: false }],
+]) {
+  test(`a streamed ${model} chat with thinking off asks for a level the model accepts`, async (t) => {
+    const reasoningService = await loadReasoningService(t, `openwhispr-gemini-thinking-${model}-`);
+    const calls = mockFetch(t, async () => {
+      throw new DOMException("The operation was aborted.", "AbortError");
+    });
+
+    await (async () => {
+      for await (const _chunk of reasoningService.processTextStreamingAI(
+        [{ role: "user", content: "hi" }],
+        model,
+        "gemini",
+        { systemPrompt: "be brief", disableThinking: true }
+      )) {
+        // drain
+      }
+    })().catch(() => undefined);
+
+    const request = calls.find(([url]) => String(url).includes(`/models/${model}:`));
+    assert.ok(request, `no Gemini request was sent for ${model}`);
+    const body = JSON.parse(request[1].body);
+    assert.deepEqual(body.generationConfig.thinkingConfig, expected);
+  });
+}

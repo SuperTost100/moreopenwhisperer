@@ -1,5 +1,6 @@
 import { getModelFamilyConstraints } from "./modelFamilyConstraints";
 import { matchesHost } from "../../utils/urlUtils";
+import { geminiLowestThinking } from "./geminiThinking";
 
 /**
  * Per-provider dialects for turning a model's thinking off. Model-family
@@ -36,8 +37,11 @@ export function suppressThinking(
 ): void {
   const family = getModelFamilyConstraints(model);
 
+  // Gemini's OpenAI-compatible endpoint maps reasoning_effort onto the same
+  // thinking levels, so a model that rejects "minimal" gets "low".
   if (providerKey === "gemini") {
-    requestBody.reasoning_effort = "minimal";
+    requestBody.reasoning_effort =
+      geminiLowestThinking(model)?.thinkingLevel === "low" ? "low" : "minimal";
     return;
   }
 

@@ -646,10 +646,10 @@
       "name": "Google Gemini",
       "models": [
         {
-          "id": "gemini-3.5-flash",
-          "name": "Gemini 3.5 Flash",
-          "description": "Latest fast, high-capability Gemini model",
-          "descriptionKey": "models.descriptions.cloud.gemini_gemini_3_5_flash",
+          "id": "gemini-3.8-flash",
+          "name": "Gemini 3.8 Flash",
+          "description": "Fast, capable Flash model for everyday tasks",
+          "descriptionKey": "models.descriptions.cloud.gemini_gemini_3_8_flash",
           "supportsThinking": true,
           "supportsVision": true
         },
@@ -658,6 +658,30 @@
           "name": "Gemini 3.5 Flash Lite",
           "description": "Fastest, most cost-effective 3.5 model",
           "descriptionKey": "models.descriptions.cloud.gemini_gemini_3_5_flash_lite",
+          "supportsThinking": true,
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-hydrogen",
+          "name": "Gemini 4 Hydrogen",
+          "description": "Fast Gemini 4 model for everyday and agentic work",
+          "descriptionKey": "models.descriptions.cloud.gemini_gemini_4_hydrogen",
+          "supportsThinking": true,
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon",
+          "name": "Gemini 4 Argon",
+          "description": "Efficient Gemini 4 reasoning, faster than Carbon",
+          "descriptionKey": "models.descriptions.cloud.gemini_gemini_4_argon",
+          "supportsThinking": true,
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-carbon",
+          "name": "Gemini 4 Carbon",
+          "description": "Google's strongest reasoning model",
+          "descriptionKey": "models.descriptions.cloud.gemini_gemini_4_carbon",
           "supportsThinking": true,
           "supportsVision": true
         },
@@ -674,14 +698,6 @@
           "name": "Gemini 3.1 Flash Lite",
           "description": "Frontier-class performance at low cost",
           "descriptionKey": "models.descriptions.cloud.gemini_gemini_3_1_flash_lite",
-          "supportsVision": true
-        },
-        {
-          "id": "gemini-3-flash-preview",
-          "name": "Gemini 3 Flash",
-          "description": "Ultra-fast, high-capability next-gen model",
-          "descriptionKey": "models.descriptions.cloud.gemini_gemini_3_flash_preview",
-          "supportsThinking": true,
           "supportsVision": true
         },
         {
@@ -731,33 +747,46 @@
           "supportsVision": true
         },
         {
-          "id": "gemini-3.7-flash-low",
-          "name": "Gemini 3.7 Flash (Low)",
-          "description": "Fast cleanup via Antigravity subscription",
-          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_3_7_flash_low",
+          "id": "gemini-4-hydrogen-low",
+          "name": "Gemini 4 Hydrogen (Low)",
+          "description": "Fast Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_low",
           "supportsVision": true
         },
         {
-          "id": "gemini-3.7-flash-medium",
-          "name": "Gemini 3.7 Flash (Medium)",
-          "description": "Balanced via Antigravity",
-          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_3_7_flash_medium",
+          "id": "gemini-4-hydrogen-medium",
+          "name": "Gemini 4 Hydrogen (Medium)",
+          "description": "Balanced Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_medium",
           "supportsVision": true
         },
         {
-          "id": "gemini-3.7-flash-high",
-          "name": "Gemini 3.7 Flash (High)",
-          "description": "Previous Flash generation via Antigravity",
-          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_3_7_flash_high",
+          "id": "gemini-4-hydrogen-high",
+          "name": "Gemini 4 Hydrogen (High)",
+          "description": "Thorough Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_high",
           "supportsVision": true
         },
         {
-          "id": "gemini-3.1-pro-high",
-          "name": "Gemini 3.1 Pro (High)",
-          "description": "Frontier Pro via Antigravity",
-          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_3_1_pro_high",
-          "supportsVision": true,
-          "supportsThinking": true
+          "id": "gemini-4-argon-low",
+          "name": "Gemini 4 Argon (Low)",
+          "description": "Efficient Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_low",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon-medium",
+          "name": "Gemini 4 Argon (Medium)",
+          "description": "Balanced Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_medium",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon-high",
+          "name": "Gemini 4 Argon (High)",
+          "description": "Deepest Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_high",
+          "supportsVision": true
         },
         {
           "id": "claude-sonnet-4-6",

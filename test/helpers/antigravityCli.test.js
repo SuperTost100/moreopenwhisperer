@@ -40,10 +40,11 @@ function makeChild({ stdout = "", stderr = "", exitCode = 0, delayMs = 0 } = {})
   return child;
 }
 
-test("resolveAgyCliModel maps retired 3.5 flash ids onto current agy catalog", () => {
-  assert.equal(resolveAgyCliModel("gemini-3.5-flash-low"), "gemini-3.7-flash-low");
-  assert.equal(resolveAgyCliModel("gemini-3.5-flash-medium"), "gemini-3.7-flash-medium");
-  assert.equal(resolveAgyCliModel("gemini-3.7-flash-low"), "gemini-3.7-flash-low");
+test("resolveAgyCliModel maps retired 3.5 and 3.7 flash ids onto current agy catalog", () => {
+  assert.equal(resolveAgyCliModel("gemini-3.5-flash-low"), "gemini-3.8-flash-low");
+  assert.equal(resolveAgyCliModel("gemini-3.5-flash-medium"), "gemini-3.8-flash-medium");
+  assert.equal(resolveAgyCliModel("gemini-3.7-flash-low"), "gemini-3.8-flash-low");
+  assert.equal(resolveAgyCliModel("gemini-3.8-flash-low"), "gemini-3.8-flash-low");
   assert.equal(resolveAgyCliModel(""), "gemini-3.8-flash-low");
 });
 
@@ -65,7 +66,7 @@ test("buildAgyArgs remaps retired 3.5 flash ids and never forwards --effort", ()
     "--dangerously-skip-permissions",
     "--disable-slash-commands",
     "--model",
-    "gemini-3.7-flash-low",
+    "gemini-3.8-flash-low",
     "--add-dir",
     "/tmp/audio",
     "--output-format",
@@ -167,12 +168,12 @@ test("runAgyTurn returns stdout on success", async () => {
     spawnImpl: (_command, args, options) => {
       assert.equal(args[0], "--print");
       assert.equal(args[1], "hello");
-      assert.equal(options.env.ANTIGRAVITY_MODEL, "gemini-3.7-flash-low");
+      assert.equal(options.env.ANTIGRAVITY_MODEL, "gemini-3.8-flash-low");
       return makeChild({ stdout: "ok\n" });
     },
   });
 
-  assert.deepEqual(result, { text: "ok", model: "gemini-3.7-flash-low", recoveredFrom: null });
+  assert.deepEqual(result, { text: "ok", model: "gemini-3.8-flash-low", recoveredFrom: null });
 });
 
 test("runAgyTurn prefers writeFilePath over noisy stdout", async (t) => {

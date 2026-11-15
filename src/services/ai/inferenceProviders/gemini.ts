@@ -9,6 +9,7 @@ import { extractGeminiText } from "../../../helpers/geminiResponse.js";
 import { wrapCleanupTranscript } from "../../../config/prompts";
 import { emptyOutputError, truncatedOutputError } from "../chatRequestBody";
 import logger from "../../../utils/logger";
+import { geminiLowestThinking, type GeminiThinkingConfig } from "../geminiThinking";
 import {
   asProviderError,
   providerHttpError,
@@ -30,24 +31,8 @@ interface GeminiResponse {
 
 interface GeminiGenerationConfig {
   temperature: number;
-  thinkingConfig?: {
-    thinkingLevel?: "minimal" | "low";
-    thinkingBudget?: number;
-    includeThoughts: boolean;
-  };
+  thinkingConfig?: GeminiThinkingConfig;
 }
-
-// Thinking controls differ by model: Pro cannot use minimal, and 2.5 uses budgets.
-const minimalThinking: Record<string, GeminiGenerationConfig["thinkingConfig"]> = {
-  "gemini-3.5-flash": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3.5-flash-lite": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3.1-flash-lite": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3-flash-preview": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3.1-pro-preview": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-2.5-flash": { thinkingBudget: 0, includeThoughts: false },
-  "gemini-2.5-flash-lite": { thinkingBudget: 0, includeThoughts: false },
-  "gemini-2.5-pro": { thinkingBudget: 128, includeThoughts: false },
-};
 
 export const geminiProvider: InferenceProvider = {
   id: "gemini",
@@ -61,20 +46,23 @@ export const geminiProvider: InferenceProvider = {
     const userContent = config.systemPrompt ? text : wrapCleanupTranscript(text);
 
     const isGemini = model.startsWith("gemini-");
-    const isGemini3 = model.startsWith("gemini-3-") || model.startsWith("gemini-3.");
+    // Gemini 4 is matched by family (gemini-4-carbon), not by a "4." version.
+    const isGemini3OrLater = /^gemini-(3[-.]|4-)/.test(model);
     const generationConfig: GeminiGenerationConfig = {
       // Google recommends 1.0 for Gemini 3 to avoid low-temperature looping.
+      // Gemini 4 has no published advice, so it keeps the same API default.
       // Cleanup defers here; explicit overrides still win.
       // https://ai.google.dev/gemini-api/docs/gemini-3#temperature
-      temperature: config.temperature ?? (isGemini3 ? 1 : config.systemPrompt ? 0.3 : 0),
+      temperature: config.temperature ?? (isGemini3OrLater ? 1 : config.systemPrompt ? 0.3 : 0),
       // No maxOutputTokens. Gemini bills thinking against it, so any budget sized
       // for the text starved thinking models (#2091), and a caller's pinned budget
       // is priced for the local path, not for Gemini (#2142). The model's own
       // limit and the request timeout bound the reply.
     };
 
-    if (config.disableThinking === true && minimalThinking[model]) {
-      generationConfig.thinkingConfig = minimalThinking[model];
+    const lowestThinking = geminiLowestThinking(model);
+    if (config.disableThinking === true && lowestThinking) {
+      generationConfig.thinkingConfig = lowestThinking;
     }
 
     const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [

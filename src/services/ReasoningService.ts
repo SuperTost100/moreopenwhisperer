@@ -40,6 +40,7 @@ import {
 } from "./ai/chatRequestBody";
 import { getModelFamilyConstraints } from "./ai/modelFamilyConstraints";
 import { detectEndpointDialect } from "./ai/thinkingSuppressionDialects";
+import { geminiLowestThinking } from "./ai/geminiThinking";
 import { openCodeSessionHeaders } from "./ai/openCodeSession";
 import { createStreamingThinkFilter } from "./ai/streamingThinkFilter";
 import { extractApiErrorMessage } from "./ai/apiErrorMessage";
@@ -948,7 +949,8 @@ class ReasoningService extends BaseReasoningService {
     const userSuppressesThinking = config.disableThinking === true && !!modelDef?.supportsThinking;
     const needsGroqDisableThinking =
       provider === "groq" && (modelDef?.disableThinking || userSuppressesThinking);
-    const needsGeminiMinimalThinking = provider === "gemini" && userSuppressesThinking;
+    const geminiThinking =
+      provider === "gemini" && userSuppressesThinking ? geminiLowestThinking(model) : null;
     const providerOptions = {
       // The effort value is a family fact: gpt-oss has no "none" (#1611).
       ...(needsGroqDisableThinking
@@ -959,9 +961,7 @@ class ReasoningService extends BaseReasoningService {
             },
           }
         : {}),
-      ...(needsGeminiMinimalThinking
-        ? { google: { thinkingConfig: { thinkingLevel: "minimal", includeThoughts: false } } }
-        : {}),
+      ...(geminiThinking ? { google: { thinkingConfig: geminiThinking } } : {}),
     };
     const hasProviderOptions = Object.keys(providerOptions).length > 0;
 
