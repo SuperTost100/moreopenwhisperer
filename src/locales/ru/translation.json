@@ -2890,6 +2890,12 @@
         "antigravity_gemini_3_8_flash_low": "Быстрая очистка через подписку Antigravity",
         "antigravity_gemini_3_8_flash_medium": "Сбалансированный вариант через Antigravity",
         "antigravity_gemini_3_8_flash_high": "Новейший Flash через Antigravity",
+        "antigravity_gemini_4_hydrogen_low": "Быстрый Gemini 4 через Antigravity",
+        "antigravity_gemini_4_hydrogen_medium": "Сбалансированный Gemini 4 через Antigravity",
+        "antigravity_gemini_4_hydrogen_high": "Тщательный Gemini 4 через Antigravity",
+        "antigravity_gemini_4_argon_low": "Эффективные рассуждения Gemini 4 через Antigravity",
+        "antigravity_gemini_4_argon_medium": "Сбалансированные рассуждения Gemini 4 через Antigravity",
+        "antigravity_gemini_4_argon_high": "Самые глубокие рассуждения Gemini 4 через Antigravity",
         "antigravity_claude_sonnet_4_6": "Claude через подписку Antigravity",
         "antigravity_claude_opus_4_6": "Opus через подписку Antigravity"
       },

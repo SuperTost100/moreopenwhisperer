@@ -2874,6 +2874,12 @@
         "antigravity_gemini_3_8_flash_low": "Pulizia veloce tramite l'abbonamento Antigravity",
         "antigravity_gemini_3_8_flash_medium": "Bilanciato tramite Antigravity",
         "antigravity_gemini_3_8_flash_high": "Ultimo Flash tramite Antigravity",
+        "antigravity_gemini_4_hydrogen_low": "Gemini 4 veloce tramite Antigravity",
+        "antigravity_gemini_4_hydrogen_medium": "Gemini 4 bilanciato tramite Antigravity",
+        "antigravity_gemini_4_hydrogen_high": "Gemini 4 approfondito tramite Antigravity",
+        "antigravity_gemini_4_argon_low": "Ragionamento Gemini 4 efficiente tramite Antigravity",
+        "antigravity_gemini_4_argon_medium": "Ragionamento Gemini 4 bilanciato tramite Antigravity",
+        "antigravity_gemini_4_argon_high": "Il ragionamento Gemini 4 più profondo tramite Antigravity",
         "antigravity_claude_sonnet_4_6": "Claude tramite l'abbonamento Antigravity",
         "antigravity_claude_opus_4_6": "Opus tramite l'abbonamento Antigravity"
       },

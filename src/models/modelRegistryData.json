@@ -747,6 +747,48 @@
           "supportsVision": true
         },
         {
+          "id": "gemini-4-hydrogen-low",
+          "name": "Gemini 4 Hydrogen (Low)",
+          "description": "Fast Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_low",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-hydrogen-medium",
+          "name": "Gemini 4 Hydrogen (Medium)",
+          "description": "Balanced Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_medium",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-hydrogen-high",
+          "name": "Gemini 4 Hydrogen (High)",
+          "description": "Thorough Gemini 4 via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_hydrogen_high",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon-low",
+          "name": "Gemini 4 Argon (Low)",
+          "description": "Efficient Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_low",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon-medium",
+          "name": "Gemini 4 Argon (Medium)",
+          "description": "Balanced Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_medium",
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-4-argon-high",
+          "name": "Gemini 4 Argon (High)",
+          "description": "Deepest Gemini 4 reasoning via Antigravity",
+          "descriptionKey": "models.descriptions.cloud.antigravity_gemini_4_argon_high",
+          "supportsVision": true
+        },
+        {
           "id": "claude-sonnet-4-6",
           "name": "Claude Sonnet 4.6",
           "description": "Claude via Antigravity subscription",

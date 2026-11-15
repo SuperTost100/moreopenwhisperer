@@ -2874,6 +2874,12 @@
         "antigravity_gemini_3_8_flash_low": "Antigravityサブスクリプション経由の高速クリーンアップ",
         "antigravity_gemini_3_8_flash_medium": "Antigravity経由のバランス型",
         "antigravity_gemini_3_8_flash_high": "Antigravity経由の最新Flash",
+        "antigravity_gemini_4_hydrogen_low": "Antigravity 経由の高速な Gemini 4",
+        "antigravity_gemini_4_hydrogen_medium": "Antigravity 経由のバランス型 Gemini 4",
+        "antigravity_gemini_4_hydrogen_high": "Antigravity 経由の入念な Gemini 4",
+        "antigravity_gemini_4_argon_low": "Antigravity 経由の効率的な Gemini 4 推論",
+        "antigravity_gemini_4_argon_medium": "Antigravity 経由のバランス型 Gemini 4 推論",
+        "antigravity_gemini_4_argon_high": "Antigravity 経由で最も深い Gemini 4 推論",
         "antigravity_claude_sonnet_4_6": "Antigravityサブスクリプション経由のClaude",
         "antigravity_claude_opus_4_6": "Antigravityサブスクリプション経由のOpus"
       },

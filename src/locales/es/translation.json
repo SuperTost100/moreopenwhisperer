@@ -2927,6 +2927,12 @@
         "antigravity_gemini_3_8_flash_low": "Limpieza rápida mediante la suscripción a Antigravity",
         "antigravity_gemini_3_8_flash_medium": "Equilibrado mediante Antigravity",
         "antigravity_gemini_3_8_flash_high": "Flash más reciente mediante Antigravity",
+        "antigravity_gemini_4_hydrogen_low": "Gemini 4 rápido mediante Antigravity",
+        "antigravity_gemini_4_hydrogen_medium": "Gemini 4 equilibrado mediante Antigravity",
+        "antigravity_gemini_4_hydrogen_high": "Gemini 4 minucioso mediante Antigravity",
+        "antigravity_gemini_4_argon_low": "Razonamiento eficiente de Gemini 4 mediante Antigravity",
+        "antigravity_gemini_4_argon_medium": "Razonamiento equilibrado de Gemini 4 mediante Antigravity",
+        "antigravity_gemini_4_argon_high": "El razonamiento más profundo de Gemini 4 mediante Antigravity",
         "antigravity_claude_sonnet_4_6": "Claude mediante la suscripción a Antigravity",
         "antigravity_claude_opus_4_6": "Opus mediante la suscripción a Antigravity"
       },

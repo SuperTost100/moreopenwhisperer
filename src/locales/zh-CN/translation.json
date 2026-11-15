@@ -2874,6 +2874,12 @@
         "antigravity_gemini_3_8_flash_low": "通过 Antigravity 订阅进行快速清理",
         "antigravity_gemini_3_8_flash_medium": "通过 Antigravity 实现均衡表现",
         "antigravity_gemini_3_8_flash_high": "通过 Antigravity 使用最新 Flash",
+        "antigravity_gemini_4_hydrogen_low": "通过 Antigravity 使用快速的 Gemini 4",
+        "antigravity_gemini_4_hydrogen_medium": "通过 Antigravity 使用均衡的 Gemini 4",
+        "antigravity_gemini_4_hydrogen_high": "通过 Antigravity 使用深入的 Gemini 4",
+        "antigravity_gemini_4_argon_low": "通过 Antigravity 使用高效的 Gemini 4 推理",
+        "antigravity_gemini_4_argon_medium": "通过 Antigravity 使用均衡的 Gemini 4 推理",
+        "antigravity_gemini_4_argon_high": "通过 Antigravity 使用最深入的 Gemini 4 推理",
         "antigravity_claude_sonnet_4_6": "通过 Antigravity 订阅使用 Claude",
         "antigravity_claude_opus_4_6": "通过 Antigravity 订阅使用 Opus"
       },

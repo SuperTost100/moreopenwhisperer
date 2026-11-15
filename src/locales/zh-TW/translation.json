@@ -2874,6 +2874,12 @@
         "antigravity_gemini_3_8_flash_low": "透過 Antigravity 訂閱進行快速清理",
         "antigravity_gemini_3_8_flash_medium": "透過 Antigravity 達到均衡表現",
         "antigravity_gemini_3_8_flash_high": "透過 Antigravity 使用最新 Flash",
+        "antigravity_gemini_4_hydrogen_low": "透過 Antigravity 使用快速的 Gemini 4",
+        "antigravity_gemini_4_hydrogen_medium": "透過 Antigravity 使用均衡的 Gemini 4",
+        "antigravity_gemini_4_hydrogen_high": "透過 Antigravity 使用深入的 Gemini 4",
+        "antigravity_gemini_4_argon_low": "透過 Antigravity 使用高效的 Gemini 4 推理",
+        "antigravity_gemini_4_argon_medium": "透過 Antigravity 使用均衡的 Gemini 4 推理",
+        "antigravity_gemini_4_argon_high": "透過 Antigravity 使用最深入的 Gemini 4 推理",
         "antigravity_claude_sonnet_4_6": "透過 Antigravity 訂閱使用 Claude",
         "antigravity_claude_opus_4_6": "透過 Antigravity 訂閱使用 Opus"
       },

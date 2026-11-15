@@ -56,3 +56,16 @@ test("the antigravity picker has gemini-3.8-flash rows and only one claims lates
     ["gemini-3.8-flash-high"]
   );
 });
+
+// agy 1.5.9 lists Gemini 4 Hydrogen and Argon (2026-11-15). The picker rows
+// use agy's own ids, so the CLI fallback can pass them to `agy --model`.
+test("the antigravity picker has the Gemini 4 rows agy lists", () => {
+  const antigravity = modelRegistryData.cloudProviders.find((p) => p.id === "antigravity");
+  const ids = antigravity.models.map((m) => m.id);
+  for (const family of ["hydrogen", "argon"]) {
+    for (const effort of ["low", "medium", "high"]) {
+      assert.ok(ids.includes(`gemini-4-${family}-${effort}`), `missing gemini-4-${family}-${effort}`);
+    }
+  }
+  assert.equal(ids[0], "gemini-3.8-flash-low", "the first row, and so the default, is unchanged");
+});

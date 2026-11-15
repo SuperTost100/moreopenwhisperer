@@ -2976,6 +2976,12 @@
         "antigravity_gemini_3_8_flash_low": "Schnelles Aufräumen über Antigravity-Abo",
         "antigravity_gemini_3_8_flash_medium": "Ausgewogen über Antigravity",
         "antigravity_gemini_3_8_flash_high": "Neuestes Flash über Antigravity",
+        "antigravity_gemini_4_hydrogen_low": "Schnelles Gemini 4 über Antigravity",
+        "antigravity_gemini_4_hydrogen_medium": "Ausgewogenes Gemini 4 über Antigravity",
+        "antigravity_gemini_4_hydrogen_high": "Gründliches Gemini 4 über Antigravity",
+        "antigravity_gemini_4_argon_low": "Effizientes Gemini-4-Reasoning über Antigravity",
+        "antigravity_gemini_4_argon_medium": "Ausgewogenes Gemini-4-Reasoning über Antigravity",
+        "antigravity_gemini_4_argon_high": "Tiefstes Gemini-4-Reasoning über Antigravity",
         "antigravity_claude_sonnet_4_6": "Claude über Antigravity-Abo",
         "antigravity_claude_opus_4_6": "Opus über Antigravity-Abo"
       },
