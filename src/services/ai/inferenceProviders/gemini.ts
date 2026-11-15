@@ -9,6 +9,7 @@ import { extractGeminiText } from "../../../helpers/geminiResponse.js";
 import { wrapCleanupTranscript } from "../../../config/prompts";
 import { emptyOutputError, truncatedOutputError } from "../chatRequestBody";
 import logger from "../../../utils/logger";
+import { geminiLowestThinking, type GeminiThinkingConfig } from "../geminiThinking";
 import {
   asProviderError,
   providerHttpError,
@@ -30,25 +31,8 @@ interface GeminiResponse {
 
 interface GeminiGenerationConfig {
   temperature: number;
-  thinkingConfig?: {
-    thinkingLevel?: "minimal" | "low";
-    thinkingBudget?: number;
-    includeThoughts: boolean;
-  };
+  thinkingConfig?: GeminiThinkingConfig;
 }
-
-// Thinking controls differ by model: Pro, 3.8 Flash and Gemini 4 cannot use
-// minimal, and 2.5 uses budgets.
-const minimalThinking: Record<string, GeminiGenerationConfig["thinkingConfig"]> = {
-  "gemini-3.8-flash": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-3.5-flash-lite": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3.1-flash-lite": { thinkingLevel: "minimal", includeThoughts: false },
-  "gemini-3.1-pro-preview": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-4-hydrogen": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-4-argon": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-4-carbon": { thinkingLevel: "low", includeThoughts: false },
-  "gemini-2.5-flash-lite": { thinkingBudget: 0, includeThoughts: false },
-};
 
 export const geminiProvider: InferenceProvider = {
   id: "gemini",
@@ -76,8 +60,9 @@ export const geminiProvider: InferenceProvider = {
       // limit and the request timeout bound the reply.
     };
 
-    if (config.disableThinking === true && minimalThinking[model]) {
-      generationConfig.thinkingConfig = minimalThinking[model];
+    const lowestThinking = geminiLowestThinking(model);
+    if (config.disableThinking === true && lowestThinking) {
+      generationConfig.thinkingConfig = lowestThinking;
     }
 
     const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
