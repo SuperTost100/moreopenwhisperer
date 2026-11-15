@@ -23,7 +23,7 @@ function setupLauncher() {
 
   fs.writeFileSync(
     path.join(appDir, `${BINARY_NAME}-app`),
-    `#!/bin/bash\nprintf '%s\\n' "$@" > "${argsFile}"\n`,
+    `#!/bin/bash\nprintf '%s\\n' "$@" > "${argsFile}"\nprintf '%s' "$GTK_MODULES" > "${argsFile}.gtk"\n`,
     { mode: 0o755 }
   );
 
@@ -131,6 +131,53 @@ test(
     ]);
   }
 );
+
+function launchedGtkModules(ctx) {
+  return fs.readFileSync(`${ctx.argsFile}.gtk`, "utf8");
+}
+
+function writeGtkSettings(ctx, body) {
+  const dir = path.join(ctx.tmp, "xdg", "gtk-3.0");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "settings.ini"), body);
+}
+
+test("loads the GTK modules KDE lists in settings.ini through GTK_MODULES", { skip: !isLinux }, () => {
+  const ctx = setupLauncher();
+  writeGtkSettings(
+    ctx,
+    "[Settings]\ngtk-theme-name=Breeze\ngtk-modules = colorreload-gtk-module:appmenu-gtk-module \n"
+  );
+
+  const res = runLauncher(ctx, { env: { GTK_MODULES: "" } });
+
+  assert.equal(res.status, 0, res.stderr);
+  assert.equal(launchedGtkModules(ctx), "colorreload-gtk-module:appmenu-gtk-module");
+});
+
+test("keeps GTK_MODULES the user already set, before the settings.ini modules", { skip: !isLinux }, () => {
+  const ctx = setupLauncher();
+  writeGtkSettings(ctx, "[Settings]\ngtk-modules=colorreload-gtk-module\n");
+
+  const res = runLauncher(ctx, { env: { GTK_MODULES: "canberra-gtk-module" } });
+
+  assert.equal(res.status, 0, res.stderr);
+  assert.equal(launchedGtkModules(ctx), "canberra-gtk-module:colorreload-gtk-module");
+});
+
+test("leaves GTK_MODULES alone without a gtk-modules line", { skip: !isLinux }, () => {
+  const ctx = setupLauncher();
+  writeGtkSettings(ctx, "[Settings]\ngtk-theme-name=Adwaita\n");
+
+  const withoutLine = runLauncher(ctx, { env: { GTK_MODULES: "" } });
+  assert.equal(withoutLine.status, 0, withoutLine.stderr);
+  assert.equal(launchedGtkModules(ctx), "");
+
+  fs.rmSync(path.join(ctx.tmp, "xdg", "gtk-3.0"), { recursive: true });
+  const withoutFile = runLauncher(ctx, { env: { GTK_MODULES: "" } });
+  assert.equal(withoutFile.status, 0, withoutFile.stderr);
+  assert.equal(launchedGtkModules(ctx), "");
+});
 
 test("rejects executable names that could break out of the generated script", () => {
   assert.throws(() => buildLinuxWrapperScript('bad"; rm -rf /'), /Invalid Linux executable name/);
