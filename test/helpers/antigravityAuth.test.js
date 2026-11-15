@@ -814,3 +814,210 @@ test("a refresh that outlasts the operation budget rejects as AGY_TIMEOUT, a cal
     fs.rmSync(homedir, { recursive: true, force: true });
   }
 });
+
+// agy 1.5.9 keeps its sign-in in the OS keyring (service "gemini", account
+// "antigravity") with the same JSON shape, and no longer writes the file.
+function fakeKeyring(initial) {
+  const store = { value: initial === undefined ? null : JSON.stringify(initial), writes: [] };
+  return {
+    store,
+    entry: {
+      getPassword: () => store.value,
+      setPassword: (value) => {
+        store.value = value;
+        store.writes.push(JSON.parse(value));
+      },
+    },
+  };
+}
+
+test("a sign-in that only lives in the keyring is used, with no token file", async () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-"));
+  const spawnCalls = [];
+  const { mod, restore } = freshAuthModule({ homedir, spawnCalls });
+  const keyring = fakeKeyring({
+    token: {
+      access_token: "from-keyring",
+      refresh_token: "refresh-me",
+      expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    },
+    auth_method: "consumer",
+  });
+  mod._setKeyringForTests(keyring.entry);
+  try {
+    const result = await mod.getAntigravityAccessToken({});
+    assert.equal(result.accessToken, "from-keyring");
+    assert.equal(spawnCalls.length, 0);
+    assert.equal(mod.readTokenFile().token.access_token, "from-keyring");
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+  }
+});
+
+test("the keyring wins over a token file an older agy left behind", async () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-wins-"));
+  const { mod, restore } = freshAuthModule({ homedir });
+  writeToken(homedir, {
+    access_token: "stale-file",
+    refresh_token: "old-refresh",
+    expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  });
+  mod._setKeyringForTests(
+    fakeKeyring({
+      token: {
+        access_token: "from-keyring",
+        refresh_token: "refresh-me",
+        expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      },
+    }).entry
+  );
+  try {
+    assert.equal((await mod.getAntigravityAccessToken({})).accessToken, "from-keyring");
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+  }
+});
+
+test("an unreadable keyring falls back to the token file", async () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-locked-"));
+  const { mod, restore } = freshAuthModule({ homedir });
+  writeToken(homedir, {
+    access_token: "from-file",
+    refresh_token: "refresh-me",
+    expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  });
+  mod._setKeyringForTests({
+    getPassword: () => {
+      throw new Error("The secret service is locked");
+    },
+    setPassword: () => assert.fail("nothing may be written to a keyring that can't be read"),
+  });
+  try {
+    assert.equal((await mod.getAntigravityAccessToken({})).accessToken, "from-file");
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+  }
+});
+
+test("a direct refresh writes the new token back to the keyring and never creates the file", async () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-refresh-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-refresh-bin-"));
+  const fetchImpl = async () =>
+    fakeFetchResponse(200, { access_token: "refreshed", expires_in: 3600 });
+  const { mod, restore } = freshAuthModule({
+    homedir,
+    agyBinaryPath: writeFakeAgyBinary(dir),
+    fetchImpl,
+  });
+  const keyring = fakeKeyring({
+    token: {
+      access_token: "expired",
+      refresh_token: "refresh-me",
+      expiry: "2000-01-01T00:00:00.000Z",
+    },
+    auth_method: "consumer",
+    id_token_email: "someone@example.com",
+  });
+  mod._setKeyringForTests(keyring.entry);
+  try {
+    const result = await mod.getAntigravityAccessToken({});
+    assert.equal(result.accessToken, "refreshed");
+    assert.equal(keyring.store.writes.length, 1);
+    const written = keyring.store.writes[0];
+    assert.equal(written.token.access_token, "refreshed");
+    assert.equal(written.token.refresh_token, "refresh-me", "the refresh token is kept");
+    assert.equal(written.auth_method, "consumer");
+    assert.equal(written.id_token_email, "someone@example.com");
+    assert.equal(fs.existsSync(mod.getTokenFilePath()), false);
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("no keyring entry and no token file is AGY_AUTH_REQUIRED", async () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-none-"));
+  const { mod, restore } = freshAuthModule({ homedir });
+  mod._setKeyringForTests(fakeKeyring().entry);
+  try {
+    await assert.rejects(mod.getAntigravityAccessToken({}), { code: "AGY_AUTH_REQUIRED" });
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+  }
+});
+
+test("a test run never opens the real keyring", () => {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-node-"));
+  const { mod, restore } = freshAuthModule({ homedir });
+  try {
+    // No override: under node --test (NODE_TEST_CONTEXT) the module must see
+    // no keyring at all, so a test run can't read the developer's own sign-in.
+    assert.equal(mod.readTokenFile(), null);
+  } finally {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+  }
+});
+
+function keyringRefreshSetup(t, keyringEntry) {
+  const homedir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-safe-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-auth-keyring-safe-bin-"));
+  const fetchImpl = async () =>
+    fakeFetchResponse(200, { access_token: "refreshed", expires_in: 3600 });
+  const { mod, restore } = freshAuthModule({
+    homedir,
+    agyBinaryPath: writeFakeAgyBinary(dir),
+    fetchImpl,
+  });
+  mod._setKeyringForTests(keyringEntry);
+  t.after(() => {
+    restore();
+    fs.rmSync(homedir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+  return mod;
+}
+
+const EXPIRED_KEYRING_TOKEN = JSON.stringify({
+  token: {
+    access_token: "expired",
+    refresh_token: "refresh-me",
+    expiry: "2000-01-01T00:00:00.000Z",
+  },
+});
+
+test("a keyring that refuses the refreshed token never sends it to a plaintext file", async (t) => {
+  const mod = keyringRefreshSetup(t, {
+    getPassword: () => EXPIRED_KEYRING_TOKEN,
+    setPassword: () => {
+      throw new Error("write refused");
+    },
+  });
+
+  await mod.getAntigravityAccessToken({}).catch(() => undefined);
+
+  assert.equal(fs.existsSync(mod.getTokenFilePath()), false);
+});
+
+test("a keyring that stops answering mid-refresh never sends the token to a plaintext file", async (t) => {
+  let reads = 0;
+  const mod = keyringRefreshSetup(t, {
+    // The hot path, the refresh's snapshot and its re-check before writing
+    // succeed; the keyring goes away right after that re-check.
+    getPassword: () => {
+      reads += 1;
+      if (reads > 3) throw new Error("The secret service went away");
+      return EXPIRED_KEYRING_TOKEN;
+    },
+    setPassword: () => assert.fail("an unreadable keyring must not be written"),
+  });
+
+  await mod.getAntigravityAccessToken({}).catch(() => undefined);
+
+  assert.equal(fs.existsSync(mod.getTokenFilePath()), false);
+});
