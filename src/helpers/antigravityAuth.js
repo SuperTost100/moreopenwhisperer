@@ -49,9 +49,10 @@ function _setKeyringForTests(entry) {
 
 function getKeyringEntry() {
   if (keyringOverride !== undefined) return keyringOverride;
-  // Plain Node (tests, scripts) never opens the real keyring, so a test run
-  // on a developer's machine can't read or overwrite their agy sign-in.
-  if (!process.versions.electron) return null;
+  // node --test marks its test processes with NODE_TEST_CONTEXT. A test run
+  // on a developer's machine must never read or overwrite their agy sign-in,
+  // while the app and scripts/refresh-antigravity-token.js do need it.
+  if (process.env.NODE_TEST_CONTEXT) return null;
   if (!keyringEntry) {
     try {
       const { Entry } = require("@napi-rs/keyring");
@@ -146,14 +147,20 @@ function parseTokenJson(raw) {
   }
 }
 
-function readTokenFileUncached() {
+// The token plus where it came from, so a refresh writes back to the same
+// store (see writeTokenFileAtomic).
+function readTokenStoreUncached() {
   const keyringRaw = readKeyringRaw();
-  if (keyringRaw) return parseTokenJson(keyringRaw);
+  if (keyringRaw) return { data: parseTokenJson(keyringRaw), source: "keyring" };
   try {
-    return JSON.parse(readTokenFileRaw());
+    return { data: JSON.parse(readTokenFileRaw()), source: "file" };
   } catch {
-    return null;
+    return { data: null, source: null };
   }
+}
+
+function readTokenFileUncached() {
+  return readTokenStoreUncached().data;
 }
 
 // The keyring wins when it holds a token (agy 1.5.9+); otherwise the token
@@ -216,13 +223,17 @@ function tokenObjEqual(a, b) {
   );
 }
 
-// Writes back to wherever the token lives: the keyring entry agy 1.5.9+
-// reads, or the token file (atomic: tmp file in the same dir + rename, mode
-// 0600). Callers pass the full token shape (not just the token sub-object)
-// so unrelated top-level fields (e.g. auth_method) survive untouched.
-function writeTokenFileAtomic(data) {
-  if (readKeyringRaw() !== null) {
-    getKeyringEntry().setPassword(JSON.stringify(data));
+// Writes back to the store the token was read from: the keyring entry agy
+// 1.5.9+ reads, or the token file (atomic: tmp file in the same dir +
+// rename, mode 0600). A keyring that fails the write throws instead of
+// falling back, so a keyring sign-in never ends up in a plaintext file.
+// Callers pass the full token shape (not just the token sub-object) so
+// unrelated top-level fields (e.g. auth_method) survive untouched.
+function writeTokenFileAtomic(data, source) {
+  if (source === "keyring") {
+    const entry = getKeyringEntry();
+    if (!entry) throw new Error("The keyring holding the Antigravity sign-in is unavailable");
+    entry.setPassword(JSON.stringify(data));
     return;
   }
   const tokenPath = getTokenFilePath();
@@ -544,7 +555,7 @@ async function performDirectRefresh() {
   // (access/refresh token or expiry) changed, someone else already
   // refreshed it (e.g. another process, or agy itself racing us) — keep
   // theirs, don't clobber.
-  const latest = readTokenFileUncached();
+  const { data: latest, source } = readTokenStoreUncached();
   if (!latest || !latest.token) {
     invalidateTokenFileCache();
     return { ok: false, reason: "token_file_missing" };
@@ -558,7 +569,7 @@ async function performDirectRefresh() {
     ...latest,
     token: { ...(beforeData?.token || {}), ...result.token },
   };
-  writeTokenFileAtomic(mergedData);
+  writeTokenFileAtomic(mergedData, source);
   invalidateTokenFileCache();
   return { ok: true, tokenObj: mergedData.token, wrote: true };
 }
