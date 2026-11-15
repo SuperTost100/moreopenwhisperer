@@ -99,7 +99,7 @@ test("a forbidden vision mode cannot redirect a local assistant to Cloud", async
         dictationAgentProvider: "qwen",
         dictationAgentModel: "qwen3-4b-q4_k_m",
         dictationAgentVisionProvider: "gemini",
-        dictationAgentVisionModel: "gemini-2.5-flash",
+        dictationAgentVisionModel: "gemini-3.8-flash",
       },
       "openwhispr-policy-vision-mode-test-"
     );
@@ -117,7 +117,7 @@ test("a forbidden vision mode cannot redirect a local assistant to Cloud", async
   assert.equal(result.config.mode, "local");
   assert.equal(result.attachScreenContext, false);
   assert.equal(effective.dictationAgentVisionModel, "");
-  assert.equal(raw.dictationAgentVisionModel, "gemini-2.5-flash");
+  assert.equal(raw.dictationAgentVisionModel, "gemini-3.8-flash");
 
   const restored = selectPolicyEffectiveSettings(raw, managedByokPolicy(["gemini"]));
   const restoredResult = resolveChatStreamingInference(restored, {
@@ -127,7 +127,7 @@ test("a forbidden vision mode cannot redirect a local assistant to Cloud", async
   });
   assert.equal(restoredResult.config.scope, "dictationAgentVision");
   assert.equal(restoredResult.config.provider, "gemini");
-  assert.equal(restoredResult.config.model, "gemini-2.5-flash");
+  assert.equal(restoredResult.config.model, "gemini-3.8-flash");
   assert.equal(restoredResult.attachScreenContext, true);
 });
 
@@ -142,7 +142,7 @@ test("the vision picker shows no Active model after policy clears its selection"
       dictationAgentProvider: "openai",
       dictationAgentModel: "gpt-5-mini",
       dictationAgentVisionProvider: "gemini",
-      dictationAgentVisionModel: "gemini-2.5-flash",
+      dictationAgentVisionModel: "gemini-3.8-flash",
     },
     "openwhispr-policy-vision-picker-test-"
   );
@@ -174,7 +174,7 @@ test("a policy that moves a configured override's provider clears its model", as
         dictationAgentProvider: "anthropic",
         dictationAgentModel: "claude-sonnet-4-5",
         dictationAgentVisionProvider: "gemini",
-        dictationAgentVisionModel: "gemini-2.5-flash",
+        dictationAgentVisionModel: "gemini-3.8-flash",
       },
       "openwhispr-policy-vision-clamped-test-"
     );

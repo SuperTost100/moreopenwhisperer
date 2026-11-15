@@ -45,7 +45,8 @@ const locales = fs
   .filter((entry) => fs.statSync(path.join(LOCALES_DIR, entry)).isDirectory());
 
 test("the registry still references at least the known antigravity description keys", () => {
-  assert.ok(antigravityKeys.length >= 11, "expected the full antigravity description key set");
+  // 7 since agy dropped gemini-3.7-flash-* and gemini-3.1-pro-high (2026-11-15).
+  assert.ok(antigravityKeys.length >= 7, "expected the full antigravity description key set");
 });
 
 test("every locale defines exactly the antigravity description keys the registry uses", () => {

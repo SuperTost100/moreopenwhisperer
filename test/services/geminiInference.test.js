@@ -22,7 +22,7 @@ async function setup(
     call: (overrides = {}) =>
       geminiProvider.call({
         text: "private transcript",
-        model: "gemini-3-flash-preview",
+        model: "gemini-3.5-flash-lite",
         agentName: null,
         config: { disableThinking: true },
         ctx: {
@@ -72,18 +72,20 @@ test("Gemini cleanup uses native instructions and metadata-only logs", async (t)
 test("thinking suppression uses controls supported by each registered Gemini model", async (t) => {
   const { call, requests } = await setup(t);
   for (const [model, control] of [
-    ["gemini-3.5-flash", { thinkingLevel: "minimal" }],
+    ["gemini-3.8-flash", { thinkingLevel: "low" }],
     ["gemini-3.5-flash-lite", { thinkingLevel: "minimal" }],
     ["gemini-3.1-flash-lite", { thinkingLevel: "minimal" }],
     ["gemini-3.1-pro-preview", { thinkingLevel: "low" }],
-    ["gemini-2.5-flash", { thinkingBudget: 0 }],
+    ["gemini-4-hydrogen", { thinkingLevel: "low" }],
+    ["gemini-4-argon", { thinkingLevel: "low" }],
+    ["gemini-4-carbon", { thinkingLevel: "low" }],
     ["gemini-2.5-flash-lite", { thinkingBudget: 0 }],
-    ["gemini-2.5-pro", { thinkingBudget: 128 }],
   ]) {
     await call({ model });
     assert.equal(
       requests.at(-1).generationConfig.temperature,
-      model.startsWith("gemini-3") ? 1 : 0
+      model.startsWith("gemini-2") ? 0 : 1,
+      model
     );
     assert.deepEqual(
       requests.at(-1).generationConfig.thinkingConfig,

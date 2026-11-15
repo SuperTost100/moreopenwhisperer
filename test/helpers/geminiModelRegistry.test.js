@@ -7,6 +7,30 @@ const modelData = require("../../src/models/modelRegistryData.json");
 // gemini-3.1-flash-lite has no thinking support, so it must never carry
 // supportsThinking: the Gemini provider would send thinkingConfig and get a 400.
 const EXPECTED = {
+  "gemini-3.8-flash": {
+    name: "Gemini 3.8 Flash",
+    descriptionKey: "models.descriptions.cloud.gemini_gemini_3_8_flash",
+    supportsThinking: true,
+    supportsVision: true,
+  },
+  "gemini-4-hydrogen": {
+    name: "Gemini 4 Hydrogen",
+    descriptionKey: "models.descriptions.cloud.gemini_gemini_4_hydrogen",
+    supportsThinking: true,
+    supportsVision: true,
+  },
+  "gemini-4-argon": {
+    name: "Gemini 4 Argon",
+    descriptionKey: "models.descriptions.cloud.gemini_gemini_4_argon",
+    supportsThinking: true,
+    supportsVision: true,
+  },
+  "gemini-4-carbon": {
+    name: "Gemini 4 Carbon",
+    descriptionKey: "models.descriptions.cloud.gemini_gemini_4_carbon",
+    supportsThinking: true,
+    supportsVision: true,
+  },
   "gemini-3.5-flash-lite": {
     name: "Gemini 3.5 Flash Lite",
     descriptionKey: "models.descriptions.cloud.gemini_gemini_3_5_flash_lite",
@@ -27,7 +51,7 @@ function geminiModels() {
   return provider.models;
 }
 
-test("the Flash Lite entries carry the exact ids, names, and capability flags", () => {
+test("the listed entries carry the exact ids, names, and capability flags", () => {
   const byId = new Map(geminiModels().map((m) => [m.id, m]));
 
   for (const [id, expected] of Object.entries(EXPECTED)) {
@@ -43,4 +67,22 @@ test("the Flash Lite entries carry the exact ids, names, and capability flags", 
 test("gemini-2.5-flash-lite stays in the registry for existing API keys", () => {
   const model = geminiModels().find((m) => m.id === "gemini-2.5-flash-lite");
   assert.ok(model, "gemini-2.5-flash-lite was removed; existing keys still resolve it");
+});
+
+// Google routes these to newer models or shuts them down on 2026-12-01, and
+// retiredCloudModels.ts repoints saved picks, so no row may offer them again.
+test("models Google has retired are not offered", () => {
+  const ids = new Set(geminiModels().map((m) => m.id));
+  for (const retired of [
+    "gemini-3.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+  ]) {
+    assert.ok(!ids.has(retired), `${retired} is still a Gemini row`);
+  }
+});
+
+test("Gemini 3.8 Flash is the provider's default (first) model", () => {
+  assert.equal(geminiModels()[0].id, "gemini-3.8-flash");
 });

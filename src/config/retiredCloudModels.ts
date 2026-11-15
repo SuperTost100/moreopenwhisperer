@@ -18,6 +18,8 @@
  * test/helpers/retiredCloudModels.test.js trips on either edit, which forces
  * the decision into the diff but cannot check you made it.
  */
+import { RETIRED_AGY_CLI_MODELS } from "../helpers/antigravityModels";
+
 export interface RetiredProviderModels {
   migratedKey: string;
   models: Record<string, string>;
@@ -48,6 +50,26 @@ export const RETIRED_CLOUD_MODELS: Record<string, RetiredProviderModels> = {
       "deepseek-v4-flash": "deepseek-v4-1-flash",
       "kimi-k2-6": "kimi-k3",
     },
+  },
+  // Gemini API models Google routes elsewhere or shuts down on 2026-12-01
+  // (aistudio.google.com/docs/deprecations, read 2026-11-15). Each goes where
+  // Google routes it, except 3.5 Flash and 3 Flash Preview, whose suggested
+  // 3.6 Flash isn't listed here, so they take 3.8 Flash.
+  gemini: {
+    migratedKey: "_retiredGeminiModelsMigrated",
+    models: {
+      "gemini-3.5-flash": "gemini-3.8-flash",
+      "gemini-3-flash-preview": "gemini-3.8-flash",
+      "gemini-2.5-flash": "gemini-3.5-flash-lite",
+      "gemini-2.5-pro": "gemini-3.8-flash",
+    },
+  },
+  // The alias in antigravityModels.ts only covers the scopes read through
+  // resolveAgyCliModel; this sweep also repoints note formatting, translation
+  // and the vision scope.
+  antigravity: {
+    migratedKey: "_retiredAntigravityModelsMigrated",
+    models: RETIRED_AGY_CLI_MODELS,
   },
 };
 

@@ -9,7 +9,7 @@ const { resolveAgyCliModel, RETIRED_AGY_CLI_MODELS } = require("../../src/helper
 // rows; keep the alias mapping so a previously saved 3.5 id still resolves
 // to something the gateway actually serves, instead of showing a blank
 // picker.
-test("retired gemini-3.5-flash rows are gone from the antigravity picker", () => {
+test("retired gemini-3.5 and 3.7 flash rows are gone from the antigravity picker", () => {
   const antigravity = modelRegistryData.cloudProviders.find((p) => p.id === "antigravity");
   const ids = antigravity.models.map((m) => m.id);
 
@@ -24,10 +24,14 @@ test("retired gemini-3.5-flash rows are gone from the antigravity picker", () =>
   }
 });
 
-test("a saved retired gemini-3.5-flash id still resolves to a served model", () => {
-  assert.equal(resolveAgyCliModel("gemini-3.5-flash-low"), "gemini-3.7-flash-low");
-  assert.equal(resolveAgyCliModel("gemini-3.5-flash-medium"), "gemini-3.7-flash-medium");
-  assert.equal(resolveAgyCliModel("gemini-3.5-flash-high"), "gemini-3.7-flash-high");
+// agy dropped gemini-3.7-flash-* and gemini-3.1-pro-high too (2026-11-15).
+// Every retired id goes straight to the 3.8 row with the same effort.
+test("a saved retired gemini-3.5 or 3.7 flash id still resolves to a served model", () => {
+  for (const effort of ["low", "medium", "high"]) {
+    assert.equal(resolveAgyCliModel(`gemini-3.5-flash-${effort}`), `gemini-3.8-flash-${effort}`);
+    assert.equal(resolveAgyCliModel(`gemini-3.7-flash-${effort}`), `gemini-3.8-flash-${effort}`);
+  }
+  assert.equal(resolveAgyCliModel("gemini-3.1-pro-high"), "gemini-3.8-flash-high");
 
   const antigravity = modelRegistryData.cloudProviders.find((p) => p.id === "antigravity");
   const ids = new Set(antigravity.models.map((m) => m.id));

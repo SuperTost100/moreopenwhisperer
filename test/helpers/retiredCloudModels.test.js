@@ -66,6 +66,67 @@ test("still remaps the models Groq retired", async () => {
   assert.equal(storage.map.get("chatAgentModel"), "openai/gpt-oss-120b");
 });
 
+test("remaps the Gemini API models Google routes elsewhere or shuts down", async () => {
+  const { sweepRetiredCloudModelSelections } = await load();
+  const VISION = { provider: "dictationAgentVisionProvider", model: "dictationAgentVisionModel" };
+  const storage = makeStorage({
+    cleanupProvider: "gemini",
+    cleanupModel: "gemini-3.5-flash",
+    chatAgentProvider: "gemini",
+    chatAgentModel: "gemini-2.5-pro",
+    noteFormattingProvider: "gemini",
+    noteFormattingModel: "gemini-3-flash-preview",
+    dictationAgentVisionProvider: "gemini",
+    dictationAgentVisionModel: "gemini-2.5-flash",
+  });
+
+  sweepRetiredCloudModelSelections(storage, [CLEANUP, CHAT, NOTES, VISION]);
+
+  assert.equal(storage.map.get("cleanupModel"), "gemini-3.8-flash");
+  assert.equal(storage.map.get("chatAgentModel"), "gemini-3.8-flash");
+  assert.equal(storage.map.get("noteFormattingModel"), "gemini-3.8-flash");
+  assert.equal(storage.map.get("dictationAgentVisionModel"), "gemini-3.5-flash-lite");
+});
+
+test("remaps Antigravity picks agy no longer lists, keeping the effort", async () => {
+  const { sweepRetiredCloudModelSelections } = await load();
+  const TRANSLATION = { provider: "translationProvider", model: "translationModel" };
+  const storage = makeStorage({
+    noteFormattingProvider: "antigravity",
+    noteFormattingModel: "gemini-3.7-flash-low",
+    translationProvider: "antigravity",
+    translationModel: "gemini-3.7-flash-medium",
+    chatAgentProvider: "antigravity",
+    chatAgentModel: "gemini-3.1-pro-high",
+    cleanupProvider: "antigravity",
+    cleanupModel: "gemini-3.8-flash-low",
+  });
+
+  sweepRetiredCloudModelSelections(storage, [CLEANUP, CHAT, NOTES, TRANSLATION]);
+
+  assert.equal(storage.map.get("noteFormattingModel"), "gemini-3.8-flash-low");
+  assert.equal(storage.map.get("translationModel"), "gemini-3.8-flash-medium");
+  assert.equal(storage.map.get("chatAgentModel"), "gemini-3.8-flash-high");
+  assert.equal(storage.map.get("cleanupModel"), "gemini-3.8-flash-low", "a served pick stays");
+});
+
+test("every Gemini and Antigravity replacement is a model the registry offers", async () => {
+  const { RETIRED_CLOUD_MODELS } = await load();
+  const registry = require("../../src/models/modelRegistryData.json");
+  for (const provider of ["gemini", "antigravity"]) {
+    const offered = new Set(
+      registry.cloudProviders.find((p) => p.id === provider).models.map((m) => m.id)
+    );
+    for (const [retired, replacement] of Object.entries(RETIRED_CLOUD_MODELS[provider].models)) {
+      assert.ok(
+        offered.has(replacement),
+        `${provider}: ${retired} -> ${replacement} is not offered`
+      );
+      assert.ok(!offered.has(retired), `${provider}: retired ${retired} is still offered`);
+    }
+  }
+});
+
 test("leaves a model the provider still serves alone", async () => {
   const { sweepRetiredCloudModelSelections } = await load();
   const storage = makeStorage({ cleanupProvider: "tinfoil", cleanupModel: "gpt-oss-120b" });
@@ -180,6 +241,22 @@ test("each provider's sentinel is pinned to the exact set of ids it covers", asy
     tinfoil: {
       migratedKey: "_retiredTinfoilModelsMigrated2",
       retired: ["deepseek-v4-flash", "deepseek-v4-pro", "glm-5-2", "kimi-k2-6"],
+    },
+    gemini: {
+      migratedKey: "_retiredGeminiModelsMigrated",
+      retired: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-flash-preview", "gemini-3.5-flash"],
+    },
+    antigravity: {
+      migratedKey: "_retiredAntigravityModelsMigrated",
+      retired: [
+        "gemini-3.1-pro-high",
+        "gemini-3.5-flash-high",
+        "gemini-3.5-flash-low",
+        "gemini-3.5-flash-medium",
+        "gemini-3.7-flash-high",
+        "gemini-3.7-flash-low",
+        "gemini-3.7-flash-medium",
+      ],
     },
   });
 });
