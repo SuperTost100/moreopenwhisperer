@@ -268,6 +268,18 @@ export function providerError(code, ctx) {
 export function asProviderError(err, ctx) {
   if (!err || typeof err !== "object" || err.messageKey || err.name === "AbortError") return err;
   const inner = err.name === "AI_RetryError" && err.lastError ? err.lastError : err;
+  // The AI SDK reports a stream that fails after a 2xx response as an
+  // APICallError carrying that 2xx status, with the real failure as its cause.
+  // A 2xx isn't an HTTP error, so classify the cause instead.
+  if (
+    typeof inner.statusCode === "number" &&
+    inner.statusCode >= 200 &&
+    inner.statusCode < 300 &&
+    inner.cause &&
+    typeof inner.cause === "object"
+  ) {
+    return asProviderError(inner.cause, ctx);
+  }
   const netError = electronNetError(inner);
   const nodeCode = [inner.code, inner.cause?.code].find((code) => NETWORK_CODES.has(code));
   let classified = null;
