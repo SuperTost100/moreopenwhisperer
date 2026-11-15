@@ -1,5 +1,8 @@
 // Antigravity credential path. `agy` is still the source of truth for the
-// OAuth token file — this module reads it, and refreshes it two ways:
+// OAuth token — this module reads it, and refreshes it two ways. agy 1.5.9
+// moved the token from ~/.gemini/antigravity-cli/antigravity-oauth-token into
+// the OS keyring (Secret Service, Keychain or Credential Manager, service
+// "gemini", account "antigravity", same JSON shape); see readTokenFile.
 //
 //   1. Directly against Google's token endpoint, using the OAuth client that
 //      ships inside the `agy` binary. The client id/secret are extracted
@@ -35,6 +38,44 @@ function getTokenFilePath() {
   return path.join(os.homedir(), TOKEN_REL);
 }
 
+const KEYRING_SERVICE = "gemini";
+const KEYRING_ACCOUNT = "antigravity";
+let keyringOverride; // undefined: the real keyring (inside Electron only)
+let keyringEntry = null;
+
+function _setKeyringForTests(entry) {
+  keyringOverride = entry;
+}
+
+function getKeyringEntry() {
+  if (keyringOverride !== undefined) return keyringOverride;
+  // Plain Node (tests, scripts) never opens the real keyring, so a test run
+  // on a developer's machine can't read or overwrite their agy sign-in.
+  if (!process.versions.electron) return null;
+  if (!keyringEntry) {
+    try {
+      const { Entry } = require("@napi-rs/keyring");
+      keyringEntry = new Entry(KEYRING_SERVICE, KEYRING_ACCOUNT);
+    } catch {
+      return null;
+    }
+  }
+  return keyringEntry;
+}
+
+// The raw keyring value, or null when there is no entry or the keyring
+// can't be read (locked, denied, no Secret Service). Callers then fall back
+// to the token file that agy before 1.5.9 writes.
+function readKeyringRaw() {
+  const entry = getKeyringEntry();
+  if (!entry) return null;
+  try {
+    return entry.getPassword() || null;
+  } catch {
+    return null;
+  }
+}
+
 // A direct refresh is ~0.5s, so the hot path can afford to wait until the
 // last minute. The keepalive still tries 5 minutes ahead and, if that
 // declines (a still-valid token agy won't touch), retries just before expiry.
@@ -48,9 +89,11 @@ const DIRECT_REFRESH_TIMEOUT_MS = 10_000; // direct-refresh single-flight's own
 // performDirectRefresh) — covers credential extraction (usually cached) plus
 // every candidate pair attempt.
 
-// Cache of the last-read token file, keyed by mtime so a hot getAccessToken
-// loop (every dictation) doesn't re-stat-and-reparse the file each call.
+// Cache of the last-read token, keyed by the file's mtime or by the raw
+// keyring value, so a hot getAccessToken loop (every dictation) doesn't
+// reparse it on each call.
 let cachedMtimeMs = null;
+let cachedKeyringRaw = null;
 let cachedTokenData = null;
 
 /**
@@ -94,7 +137,18 @@ function readTokenFileRaw() {
   return fs.readFileSync(getTokenFilePath(), "utf8");
 }
 
+function parseTokenJson(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function readTokenFileUncached() {
+  const keyringRaw = readKeyringRaw();
+  if (keyringRaw) return parseTokenJson(keyringRaw);
   try {
     return JSON.parse(readTokenFileRaw());
   } catch {
@@ -102,10 +156,22 @@ function readTokenFileUncached() {
   }
 }
 
-// mtime-cached read: only re-stat+reparse when the file actually changed
-// since the last read (agy is normally the only writer, and any direct
-// refresh this module performs goes through invalidateTokenFileCache()).
+// The keyring wins when it holds a token (agy 1.5.9+); otherwise the token
+// file. Cached on the raw keyring value or the file's mtime, so a repeat read
+// only reparses when the token actually changed (agy is normally the only
+// writer, and any direct refresh this module performs goes through
+// invalidateTokenFileCache()).
 function readTokenFile() {
+  const keyringRaw = readKeyringRaw();
+  if (keyringRaw) {
+    if (cachedTokenData && cachedKeyringRaw === keyringRaw) return cachedTokenData;
+    const parsed = parseTokenJson(keyringRaw);
+    cachedMtimeMs = null;
+    cachedKeyringRaw = parsed ? keyringRaw : null;
+    cachedTokenData = parsed;
+    return parsed;
+  }
+  cachedKeyringRaw = null;
   const tokenPath = getTokenFilePath();
   let stat;
   try {
@@ -132,7 +198,12 @@ function readTokenFile() {
 
 function invalidateTokenFileCache() {
   cachedMtimeMs = null;
+  cachedKeyringRaw = null;
   cachedTokenData = null;
+}
+
+function tokenStoreExists() {
+  return readKeyringRaw() !== null || fs.existsSync(getTokenFilePath());
 }
 
 function tokenObjEqual(a, b) {
@@ -145,10 +216,15 @@ function tokenObjEqual(a, b) {
   );
 }
 
-// Atomic write: tmp file in the same dir + rename, mode 0600. Callers pass
-// the full token-file shape (not just the token sub-object) so unrelated
-// top-level fields (e.g. auth_method) survive untouched.
+// Writes back to wherever the token lives: the keyring entry agy 1.5.9+
+// reads, or the token file (atomic: tmp file in the same dir + rename, mode
+// 0600). Callers pass the full token shape (not just the token sub-object)
+// so unrelated top-level fields (e.g. auth_method) survive untouched.
 function writeTokenFileAtomic(data) {
+  if (readKeyringRaw() !== null) {
+    getKeyringEntry().setPassword(JSON.stringify(data));
+    return;
+  }
   const tokenPath = getTokenFilePath();
   const dir = path.dirname(tokenPath);
   fs.mkdirSync(dir, { recursive: true });
@@ -591,7 +667,7 @@ async function getAntigravityAccessToken({
   const signal = op?.signal ?? plainSignal;
   const abortCode = op ? () => classifyAbortError(null, op.callerSignal) : undefined;
   let data = readTokenFile();
-  if (!data?.token && !fs.existsSync(getTokenFilePath())) {
+  if (!data?.token && !tokenStoreExists()) {
     throw createAntigravityError(
       "AGY_AUTH_REQUIRED",
       "Antigravity is not signed in. Run `agy auth login` in a terminal first."
@@ -737,5 +813,6 @@ module.exports = {
   _refreshViaAgy: refreshViaAgy,
   _extractCredentialsFromFile: extractCredentialsFromFile,
   _setUserDataDirForTests,
+  _setKeyringForTests,
   _setFetchImplForTests,
 };
