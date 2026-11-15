@@ -5,7 +5,7 @@
 ## What you need
 
 - PulseAudio or PipeWire for the microphone. PipeWire is also what meeting system audio uses
-- A 64-bit distro that can run an Electron 41 app (glibc, not musl/Alpine)
+- A 64-bit distro that can run an Electron 43 app (glibc, not musl/Alpine)
 
 ## Which package
 

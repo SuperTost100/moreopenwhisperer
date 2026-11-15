@@ -248,6 +248,26 @@ test("asProviderError classifies AI SDK APICallError and RetryError", async () =
   assert.equal(asProviderError(retryError, { provider: "Anthropic", surface: "llm" }).code, "PROVIDER_UNAVAILABLE");
 });
 
+test("a stream that fails after a 2xx response is classified by its cause, not its status", async () => {
+  const { asProviderError } = await load();
+  const ctx = { provider: "Gemini", surface: "llm" };
+  const midStream = (cause) =>
+    Object.assign(new Error("Failed to process successful response"), {
+      name: "AI_APICallError",
+      statusCode: 200,
+      cause,
+    });
+
+  const boom = new Error("boom");
+  assert.equal(asProviderError(midStream(boom), ctx), boom, "an unknown cause is passed through");
+
+  const reset = asProviderError(midStream(Object.assign(new Error("x"), { code: "ECONNRESET" })), ctx);
+  assert.equal(reset.code, "PROVIDER_UNREACHABLE");
+
+  const http500 = Object.assign(new Error("server"), { name: "AI_APICallError", statusCode: 500, cause: boom });
+  assert.equal(asProviderError(http500, ctx).code, "PROVIDER_UNAVAILABLE", "a real HTTP error keeps its status");
+});
+
 test("asProviderError classifies timeouts and network failures", async () => {
   const { asProviderError } = await load();
   const ctx = { provider: "Groq", surface: "llm" };
